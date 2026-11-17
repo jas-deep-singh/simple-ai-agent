@@ -1,6 +1,6 @@
 import {GoogleGenAI} from '@google/genai';
 import readlineSync from "readline-sync";
-import dotenv from dotenv;
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -70,7 +70,7 @@ while(true) {
             }
         });
         const result = chat.text;
-        messages.push({ role: "assistant", parts: [{text: result}] });
+        messages.push({ role: "model", parts: [{text: result}] });
         const call = JSON.parse(result);
         if(call.type==="output") {
             console.log(`${call.output}`);
@@ -78,8 +78,11 @@ while(true) {
         } 
         else if(call.type==="action") {
             const fn = tools[call.function];
+            if(!fn) {
+                throw new Error(`Unknown function: ${call.function}`);
+            }
             const observation = fn(call.input);
-            messages.push({ role: "developer", parts: [{text: JSON.stringify({
+            messages.push({ role: "user", parts: [{text: JSON.stringify({
                 type: "observation",
                 observation: observation
             })}] });
